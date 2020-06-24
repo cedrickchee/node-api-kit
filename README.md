@@ -2,7 +2,9 @@
 
 A simple starter kit to jumpstart your API services development project.
 
-Demo: Send HTTP requests using cURL or Postman to [this API endpoint](https://ced-nodejs-course-task-mgr.herokuapp.com/).
+**Demo**
+
+Send HTTP requests using cURL or [Postman](https://www.postman.com/) to [this API endpoint](https://ced-nodejs-course-task-mgr.herokuapp.com/).
 
 ## Development
 
@@ -12,7 +14,9 @@ Demo: Send HTTP requests using cURL or Postman to [this API endpoint](https://ce
 
 ## Production Deployment
 
-We are using Heroku. So, install and setup Heroku CLI on your OS.
+We are using Heroku for web hosting. So, [install and setup Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) on your OS.
+
+Next, for the database, we will host MongoDB in the Cloud with [MongoDB Atlas](https://www.mongodb.com/cloud/atlas). Atlas is a managed database-as-a-service on AWS or Google Cloud and born out of mLab. So, go and register an account and set it up by following the instructions there.
 
 Then, run these commands in your terminal:
 
@@ -35,4 +39,10 @@ JWT_SECRET=<insert your JWT secret>
 MONGODB_URL='mongodb+srv://<insert your username>:<insert your password>@cluster0.lzk74.mongodb.net/task-manager-api?retryWrites=true&w=majority' \
 SENDGRID_API_KEY=<insert your Sendgrid API key>
 -a ced-nodejs-course-task-mgr
+```
+
+Finally, deploy to Heroku.
+
+```sh
+$ git push heroku master
 ```
