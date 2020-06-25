@@ -22,6 +22,10 @@ beforeEach(async () => {
   await new User(userOne).save();
 });
 
+afterAll(async () => {
+  await mongoose.connection.close();
+});
+
 test('Should signup a new user', async () => {
   await request(app)
     .post('/users')
