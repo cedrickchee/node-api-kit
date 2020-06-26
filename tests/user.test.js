@@ -61,7 +61,7 @@ test('Should not login nonexisting user', async () => {
     .expect(400);
 });
 
-test('Should get profile for user', async () => {
+test('Should get profile for authenticated user', async () => {
   await request(app)
     .get('/users/me')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -73,7 +73,7 @@ test('Should not get profile for unauthenticated user', async () => {
   await request(app).get('/users/me').send().expect(401);
 });
 
-test('Should delete account for user', async () => {
+test('Should delete account for authenticated user', async () => {
   await request(app)
     .delete('/users/me')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
@@ -91,7 +91,7 @@ test('Should not delete account for unauthenticated user', async () => {
   await request(app).delete('/users/me').send().expect(401);
 });
 
-test('Should upload avatar image', async () => {
+test('Should upload profile picture', async () => {
   await request(app)
     .post('/users/me/avatar')
     .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
