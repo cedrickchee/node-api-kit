@@ -61,3 +61,54 @@ test('Should not allow user to delete other users task', async () => {
   const task = await Task.findById(taskOne._id);
   expect(task).not.toBeNull();
 });
+
+test('Should not create task with invalid completed field', async () => {
+  await request(app)
+    .post('/tasks')
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send({
+      completed: taskOne.completed,
+    })
+    .expect(400);
+});
+
+test('Should not update task with invalid completed field', async () => {
+  await request(app)
+    .patch('/tasks/' + taskOne._id)
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send({
+      completed: 'not yet',
+    })
+    .expect(400);
+
+  const task = await Task.findById(taskOne._id);
+  expect(task.completed).not.toBe('not yet');
+});
+
+test('Should be able to delete task for authenticated user', async () => {
+  const response = await request(app)
+    .delete(`/tasks/${taskOne._id}`)
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send()
+    .expect(200);
+
+  const task = await Task.findById(taskOne._id);
+  expect(task).toBeNull();
+});
+
+test('Should not able to delete task if unauthenticated', async () => {
+  await request(app).delete(`/tasks/${taskOne._id}`).send().expect(401);
+});
+
+test('Should not update other users task', async () => {
+  await request(app)
+    .patch('/tasks/' + taskTwo._id)
+    .set('Authorization', `Bearer ${userTwo.tokens[0].token}`)
+    .send({
+      description: 'Change Test Task 2',
+    })
+    .expect(404);
+
+  const task = await Task.findById(taskThree._id);
+  expect(task.description).not.toBe('Change Test Task 3');
+});
