@@ -112,3 +112,94 @@ test('Should not update other users task', async () => {
   const task = await Task.findById(taskThree._id);
   expect(task.description).not.toBe('Change Test Task 3');
 });
+
+test('Should fetch user task by ID', async () => {
+  // Assertion to fetch the user task
+  const response = await request(app)
+    .get(`/tasks/${taskOne._id}`)
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send()
+    .expect(200);
+
+  expect(response.body.description).toBe(taskOne.description);
+});
+
+test('Should not able to fetch task by ID if unauthenticated', async () => {
+  await request(app).get(`/tasks/${taskOne._id}`).send().expect(401);
+});
+
+test('Should not fetch other users task by ID', async () => {
+  await request(app)
+    .get(`/tasks/${taskOne._id}`)
+    .set('Authorization', `Bearer ${userTwo.tokens[0].token}`)
+    .send()
+    .expect(404);
+});
+
+test('Should fetch only completed task', async () => {
+  const response = await request(app)
+    .get(`/tasks?completed=true`)
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send()
+    .expect(200);
+
+  expect(response.body.length).toBe(1);
+});
+
+test('Should fetch only incomplete task', async () => {
+  const response = await request(app)
+    .get(`/tasks?completed=false`)
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send()
+    .expect(200);
+
+  expect(response.body.length).toBe(1);
+});
+
+describe('Test sorting', () => {
+  test('Should sort task by description', async () => {
+    const response = await request(app)
+      .get(`/tasks?sortBy=description:desc`)
+      .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+      .send()
+      .expect(200);
+
+    expect(response.body[0].description).toBe(taskTwo.description);
+  });
+
+  test('Should sort task by createdAt', async () => {
+    const response = await request(app)
+      .get('/tasks?sortBy=createdAt:desc')
+      .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+      .send()
+      .expect(200);
+
+    expect(response.body[0].description).toBe(taskTwo.description);
+  });
+
+  test('Shoud sort task by updateAt', async () => {
+    // Updating the first task
+    await Task.findByIdAndUpdate(taskOne._id, {
+      description: 'Test Task 1 Again',
+    });
+
+    // Assertion to test sorting by updateAt in descending
+    const response = await request(app)
+      .get('/tasks?sortBy=updatedAt:desc')
+      .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+      .send()
+      .expect(200);
+
+    expect(response.body[0].description).toBe('Test Task 1 Again');
+  });
+});
+
+test('Shoud fetch pages of tasks', async () => {
+  const response = await request(app)
+    .get('/tasks?limit=1')
+    .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+    .send()
+    .expect(200);
+
+  expect(response.body.length).toBe(1);
+});
