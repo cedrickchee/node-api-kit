@@ -1,5 +1,6 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const app = require('../src/app');
 const User = require('../src/models/user');
 const { userOneId, userOne, setupDatabase } = require('./fixtures/db');
@@ -123,4 +124,77 @@ test('Should not update invalid user fields', async () => {
       location: 'Bali',
     })
     .expect(400);
+});
+
+describe('Test bad signup', () => {
+  test('Should not signup user with invalid name', async () => {
+    await request(app)
+      .post('/users')
+      .send({
+        name: '',
+        email: 'john@foo.bar',
+        password: 'my0sompass',
+      })
+      .expect(400);
+  });
+
+  test('Should not signup user with invalid email', async () => {
+    await request(app)
+      .post('/users')
+      .send({
+        name: 'John Doe',
+        email: 'john@foo',
+        password: 'my0sompass',
+      })
+      .expect(400);
+  });
+
+  test('Should not signup user with invalid password', async () => {
+    await request(app)
+      .post('/users')
+      .send({
+        name: 'John Doe',
+        emial: 'john@foo.bar',
+        password: 'ps12',
+      })
+      .expect(400);
+  });
+});
+
+test('Should not update user if unauthenticated', async () => {
+  await request(app)
+    .patch('/users/me')
+    .send({
+      name: 'Some User',
+    })
+    .expect(401);
+});
+
+describe('Test bad user update', () => {
+  test('Should not update user with invalid email', async () => {
+    const response = await request(app)
+      .patch('/users/me')
+      .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+      .send({
+        email: 'john@foo',
+      })
+      .expect(400);
+
+    const user = await User.findById(userOneId);
+    expect(user.email).not.toBe('john@foo');
+  });
+
+  test('Should not update user with invalid password', async () => {
+    const response = await request(app)
+      .patch('/users/me')
+      .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+      .send({
+        password: 'ps12',
+      })
+      .expect(400);
+
+    const user = await User.findById(userOneId);
+    const samePass = await bcrypt.compare('ps12', user.password);
+    expect(samePass).toBe(false);
+  });
 });
